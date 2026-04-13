@@ -12,9 +12,6 @@
 /package-lock.json
 /yarn.lock
 
-# Environment files
-/.env
-
 # Angular CLI and build artefacts
 /.angular-cli.json
 /.ng/
@@ -26,3 +23,118 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Build
+
+bin/
+obj/
+out/
+
+# User-specific files
+
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+
+*.log
+logs/
+
+# Runtime files
+
+*.runtimeconfig.json
+
+# Environment configs
+
+appsettings.Development.json
+appsettings.Local.json
+
+# SQLite
+
+*.db
+*.db-shm
+*.db-wal
+
+# Test results
+
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Publish
+
+publish/
+artifacts/
+
+# IDEs
+
+.vs/
+.idea/
+.vscode/
+
+# Hot reload / temp
+
+*.hotreload.json
+
+# Angular cache
+
+.angular/cache/
+
+# Logs
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+
+.env
+.env.*
+!.env.example
+
+# Cache
+
+.cache/
+
+# Security / Secrets
+
+*.pfx
+*.snk
+*.key
+*.pem
+secrets.json
+
+# Azure / AWS local configs
+
+.azure/
+.aws/
+
+# Docker / Containers
+
+docker-compose.override.yml
+*.dockerignore
+
+# Misc
+
+.DS_Store
+Thumbs.db
+
+# Backup files
+
+*.bak
+*.tmp
+*.swp
+*~
+
+# EF Core migrations
+
+Migrations/
+
+# wwwroot (se gerado automaticamente)
+
+wwwroot/

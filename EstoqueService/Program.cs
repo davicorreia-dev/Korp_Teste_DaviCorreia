@@ -1,41 +1,55 @@
+using EstoqueService.Data;
+using EstoqueService.Middleware;
+using EstoqueService.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 1. CONFIGURAÇÃO DE SERVIÇOS (DI Container)
+
+builder.Services.AddControllers();
+
+builder.Services.AddOpenApi(); 
+
+// Configuração do Banco de Dados com SQLite
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                       ?? "Data Source=estoque.db";
+
+builder.Services.AddDbContext<EstoqueDbContext>(options =>
+    options.UseSqlite(connectionString));
+
+// Injeção de Dependência: Scoped cria uma instância por requisição HTTP
+builder.Services.AddScoped<IProdutoService, ProdutoService>();
+
+// CORS: Essencial para comunicação do Frontend Angular com a API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+        policy.WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
+// 2. CONSTRUÇÃO E PIPELINE (Middlewares)
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Inicialização automática do banco para ambiente de desenvolvimento
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EstoqueDbContext>();
+    // EnsureCreated é para SQLite/Prototipagem rápida
+    db.Database.EnsureCreated();
+    
+    app.MapOpenApi(); // Expõe o documento OpenAPI (swagger.json)
 }
 
-app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.UseCors("AllowAngular");
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// Mapeia as rotas dos Controllers (ex: api/produtos)
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

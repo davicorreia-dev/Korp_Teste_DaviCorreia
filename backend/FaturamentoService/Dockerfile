@@ -1,23 +1,27 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
+﻿# BUILD (Com SDK completo)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["backend/FaturamentoService/FaturamentoService.csproj", "backend/FaturamentoService/"]
-RUN dotnet restore "backend/FaturamentoService/FaturamentoService.csproj"
+
+# Copia apenas o arquivo de projeto e restaura (Aproveita o Cache do Docker)
+COPY ["FaturamentoService.csproj", "./"]
+RUN dotnet restore "FaturamentoService.csproj"
+
+# Copia o restante do código e compila
 COPY . .
-WORKDIR "/src/backend/FaturamentoService"
-RUN dotnet build "./FaturamentoService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# /p:UseAppHost=false evita gerar um executável desnecessário no Linux, poupando espaço
+RUN dotnet publish "FaturamentoService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./FaturamentoService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
+# FASE FINAL (Apenas o Runtime)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Usar esse usuário impede que, se um hacker invadir o container, ele tenha acesso total.
+USER $APP_UID 
+
+# Copia os artefatos compilados da fase de build
+COPY --from=build /app/publish .
+
+# Informa ao Docker que o serviço escuta na porta 8080 (padrão do .NET 8+)
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "FaturamentoService.dll"]

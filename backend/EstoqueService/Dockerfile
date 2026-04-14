@@ -1,23 +1,26 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
+﻿# BUILD (SDK 10.0)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["backend/EstoqueService/EstoqueService.csproj", "backend/EstoqueService/"]
-RUN dotnet restore "backend/EstoqueService/EstoqueService.csproj"
+
+# Cache de dependências: restaura antes de copiar o código (DRY & Performance)
+COPY ["EstoqueService.csproj", "./"]
+RUN dotnet restore "EstoqueService.csproj"
+
+# Copia o resto e publica
 COPY . .
-WORKDIR "/src/backend/EstoqueService"
-RUN dotnet build "./EstoqueService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet publish "EstoqueService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./EstoqueService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
+# FINAL (Runtime)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# No .NET 10, rodar como usuário não-root é a regra.
+# O UID 1654 (app) já vem configurado na imagem oficial.
+USER $APP_UID 
+
+COPY --from=build /app/publish .
+
+# 8080 padrão para containers
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "EstoqueService.dll"]

@@ -36,7 +36,7 @@ builder.Services.AddHttpClient<IEstoqueClient, EstoqueClient>(client =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:5002")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });

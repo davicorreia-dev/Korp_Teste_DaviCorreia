@@ -1,0 +1,54 @@
+﻿# ─── DOCKER COMPOSE ───────────────────────────────────────────────────────────
+# Orquestra os dois microsserviços.
+# Para rodar: docker compose up --build -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  estoque-service:
+    build:
+      context: ./backend/EstoqueService
+      dockerfile: Dockerfile
+    container_name: estoque-service
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/estoque.db
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - estoque-data:/data
+    networks:
+      - korp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  faturamento-service:
+    build:
+      context: ./backend/FaturamentoService
+      dockerfile: Dockerfile
+    container_name: faturamento-service
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/data/faturamento.db
+      - EstoqueService__BaseUrl=http://estoque-service:8080 # Comunicação interna 
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - faturamento-data:/data
+    networks:
+      - korp-network
+    depends_on:
+      - estoque-service
+
+volumes:
+  estoque-data:
+  faturamento-data:
+
+networks:
+  korp-network:
+    driver: bridge

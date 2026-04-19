@@ -42,16 +42,18 @@ public class ProdutoService(EstoqueDbContext context, ILogger<ProdutoService> lo
     {
         ValidarDadosBasicos(dto.Codigo, dto.Descricao, dto.Saldo);
         
-        // Verifica duplicidade (KISS - Simples e direto)
+        // Normaliza o código para comparação case-insensitive via EF Core.
+        var codigoNormalizado = dto.Codigo.Trim().ToUpper();
+
         var codigoJaExiste = await context.Produtos
-            .AnyAsync(p => p.Codigo.Equals(dto.Codigo.Trim(), StringComparison.CurrentCultureIgnoreCase));
+            .AnyAsync(p => p.Codigo.ToUpper() == codigoNormalizado);
 
         if (codigoJaExiste)
             throw new InvalidOperationException($"O código '{dto.Codigo}' já está em uso.");
 
         var produto = new Produto
         {
-            Codigo = dto.Codigo.Trim().ToUpper(),
+            Codigo = codigoNormalizado,
             Descricao = dto.Descricao.Trim(),
             Saldo = dto.Saldo,
             CriadoEm = DateTime.UtcNow,

@@ -75,7 +75,7 @@ Korp_Teste_DaviCorreia/
 │   │   ├── Dockerfile
 │   │   ├── EstoqueService.csproj
 │   │   ├── Program.cs
-│   │   └── appsettings.json     # Porta: 5001
+│   │   └── appsettings.json     # Porta: 5106
 │   │
 │   └── FaturamentoService/      # Microsserviço de notas fiscais
 │       ├── Controllers/
@@ -212,7 +212,7 @@ dotnet run
 Aguarde a mensagem `Now listening on: http://localhost:5000`.
 O banco `faturamento.db` é criado automaticamente.
 
-Swagger UI: http://localhost:5002/swagger
+Swagger UI: http://localhost:5000/swagger
 
 > **⚠️ Ordem importante:** O EstoqueService deve estar rodando antes do FaturamentoService, pois ele será consultado na inicialização de operações com notas fiscais.
 

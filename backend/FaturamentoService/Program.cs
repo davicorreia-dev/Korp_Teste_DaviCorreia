@@ -25,7 +25,7 @@ builder.Services.AddScoped<INotaFiscalService, NotaFiscalService>();
 
 builder.Services.AddHttpClient<IEstoqueClient, EstoqueClient>(client =>
 {
-    var baseUrl = builder.Configuration["EstoqueService:BaseUrl"] ?? "http://localhost:5001";
+    var baseUrl = builder.Configuration["EstoqueService:BaseUrl"] ?? "http://localhost:5106";
     client.BaseAddress = new Uri(baseUrl);
     client.Timeout = TimeSpan.FromSeconds(30); 
 })
@@ -36,7 +36,7 @@ builder.Services.AddHttpClient<IEstoqueClient, EstoqueClient>(client =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
-        policy.WithOrigins("http://localhost:5002")
+        policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
